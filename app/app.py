@@ -18,12 +18,22 @@ def forward_request(path):
     # log the URL and method of the forwarded request
     print(f'Forwarding request to {forward_url} with method {request.method}')
     # set some default headers for GET requests
-    headers = {"Accept-Language": "en-US,en;q=0.5"}
+    headers = {
+        'authority': 'stackoverflow.com',
+        'cache-control': 'max-age=0',
+        'upgrade-insecure-requests': '1',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
+        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+        'referer': 'https://stackoverflow.com/questions/tagged/python?sort=newest&page=2&pagesize=15',
+        'accept-language': 'en-US,en;q=0.9,tr-TR;q=0.8,tr;q=0.7',
+        'cookie': 'prov=6bb44cc9-dfe4-1b95-a65d-5250b3b4c9fb; _ga=GA1.2.1363624981.1550767314; __qca=P0-1074700243-1550767314392; notice-ctt=4%3B1550784035760; _gid=GA1.2.1415061800.1552935051; acct=t=4CnQ70qSwPMzOe6jigQlAR28TSW%2fMxzx&s=32zlYt1%2b3TBwWVaCHxH%2bl5aDhLjmq4Xr',
+    }
 
     # forward the request
     if request.method == 'GET':
         params = {k: v if len(v) > 1 else v[0] for k, v in request.args.lists()}
         print(f'Request params: {params}')
+        print(request.headers)
         response = requests.get(forward_url, params=params, headers=headers, allow_redirects=True)
     elif request.method == 'POST':
         response = requests.post(forward_url, data=request.get_data(), headers=request.headers, allow_redirects=True)
