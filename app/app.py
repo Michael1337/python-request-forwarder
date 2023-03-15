@@ -17,21 +17,28 @@ def forward_request(path):
     forward_url = FORWARD_URL + '/' + path
     # log the URL and method of the forwarded request
     print(f'Forwarding request to {forward_url} with method {request.method}')
+    # set some default headers for GET requests
+    headers = {"Accept-Language": "en-US,en;q=0.5"}
+
     # forward the request
     if request.method == 'GET':
         params = {k: v if len(v) > 1 else v[0] for k, v in request.args.lists()}
         print(f'Request params: {params}')
-        response = requests.get(forward_url, params=params)
+        response = requests.get(forward_url, params=params, headers=headers, allow_redirects=True)
     elif request.method == 'POST':
-        response = requests.post(forward_url, data=request.get_data(), headers=request.headers)
+        response = requests.post(forward_url, data=request.get_data(), headers=request.headers, allow_redirects=True)
+        # check if the response is a redirection response
+        if response.is_redirect:
+            # follow the redirection and get the JSON response from the new URL
+            response = requests.get(response.headers['Location'])
     elif request.method == 'PUT':
-        response = requests.put(forward_url, data=request.get_data(), headers=request.headers)
+        response = requests.put(forward_url, data=request.get_data(), headers=request.headers, allow_redirects=True)
     elif request.method == 'DELETE':
-        response = requests.delete(forward_url, headers=request.headers)
+        response = requests.delete(forward_url, headers=request.headers, allow_redirects=True)
     elif request.method == 'PATCH':
-        response = requests.patch(forward_url, data=request.get_data(), headers=request.headers)
+        response = requests.patch(forward_url, data=request.get_data(), headers=request.headers, allow_redirects=True)
     elif request.method == 'OPTIONS':
-        response = requests.options(forward_url, headers=request.headers)
+        response = requests.options(forward_url, headers=request.headers, allow_redirects=True)
         # set Access-Control-Allow-Methods header to allow all methods and all headers
         headers = {'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
                    'Access-Control-Allow-Headers': request.headers.get('Access-Control-Request-Headers', '*')}
