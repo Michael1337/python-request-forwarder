@@ -11,6 +11,8 @@ FORWARD_URL = os.environ.get('FORWARD_URL', 'https://other-url.com')
 def forward_request(path):
     # specify the URL to forward the request to
     forward_url = FORWARD_URL + '/' + path
+    # log the URL and method of the forwarded request
+    print(f'Forwarding request to {forward_url} with method {request.method}')
     # forward the request
     if request.method == 'GET':
         response = requests.get(forward_url, params=request.args)
@@ -24,6 +26,9 @@ def forward_request(path):
         response = requests.patch(forward_url, data=request.get_data(), headers=request.headers)
     else:
         return jsonify({'error': 'Unsupported HTTP method'}), 400
+    # log the status code and headers of the response
+    print(f'Response status code: {response.status_code}')
+    print(f'Response headers: {response.headers}')
     # return the response to the original requester
     return response.content, response.status_code, response.headers.items()
 
