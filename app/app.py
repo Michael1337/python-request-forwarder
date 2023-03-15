@@ -6,6 +6,7 @@ app = Flask(__name__)
 
 FORWARD_URL = os.environ.get('FORWARD_URL', 'https://other-url.com')
 
+
 @app.route('/', defaults={'path': ''}, methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 @app.route('/<path:path>', methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 def forward_request(path):
@@ -26,11 +27,19 @@ def forward_request(path):
         response = requests.patch(forward_url, data=request.get_data(), headers=request.headers)
     else:
         return jsonify({'error': 'Unsupported HTTP method'}), 400
-    # log the status code and headers of the response
-    print(f'Response status code: {response.status_code}')
-    print(f'Response headers: {response.headers}')
-    # return the response to the original requester
-    return response.content, response.status_code, response.headers.items()
+
+    # determine the content type of the forwarded response
+    content_type = response.headers.get('Content-Type', '').lower()
+    if 'json' in content_type:
+        # if the response is JSON, set the Content-Type of the response to application/json
+        return response.content, response.status_code, {'Content-Type': 'application/json'}
+    elif 'html' in content_type:
+        # if the response is HTML, set the Content-Type of the response to text/html
+        return response.content, response.status_code, {'Content-Type': 'text/html'}
+    else:
+        # if the content type is not recognized, set the Content-Type to match the forwarded response
+        return response.content, response.status_code, {'Content-Type': content_type}
+
 
 if __name__ == '__main__':
     app.run()
